@@ -1,5 +1,9 @@
 # Releases
 
+## v0.2.5
+
+- Use `core-markdown` in place of `socketry-markdown`.
+
 ## v0.2.4
 
 - Document generated task links and related project references.

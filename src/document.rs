@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use socketry_markdown::{
+use core_markdown::{
     MarkdownOptions, ParseOptions,
     mdast::{Html, InlineCode, Link, List, ListItem, Node, Paragraph, Text},
     to_mdast,
