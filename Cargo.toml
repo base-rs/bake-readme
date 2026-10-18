@@ -1,9 +1,9 @@
 [package]
 name = "bake-readme"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/socketry/bake-readme-rust"
+repository = "https://github.com/core-rs/bake-readme"
 description = "Reusable readme.md maintenance tasks for Bake"
 readme = "readme.md"
 include = ["src/**", "tests/**", "context/**", "Cargo.toml", "readme.md", "license.md", "releases.md"]
@@ -22,7 +22,7 @@ reviewers = ["core-rs/maintainers"]
 name = "bake_readme"
 
 [dependencies]
-socketry-markdown = "0.1.0"
+core-markdown = "0.1.0"
 bake = ">=0.18.0"
 serde_json = "1.0"
 tempfile = "3.27"
