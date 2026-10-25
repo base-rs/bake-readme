@@ -28,13 +28,16 @@ A custom path is supported with `--path PATH`.
 
 ## Releasing
 
-Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or `bump --version X.Y.Z`), commit with a `Release: vVERSION` trailer, then run `cargo bake cargo:release` and open a pull request. After review and merge, GitHub Actions publishes the release when the configured `crates-io` environment approves it. Follow the shared [Releasing skill](https://github.com/core-rs/core-project/blob/main/context/releasing.md) for the standard process.
+Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or `bump --version X.Y.Z`), commit with a `Release: vVERSION` trailer, then run `cargo bake cargo:release` and open a pull request. After review and merge, GitHub Actions publishes the release when the configured `crates-io` environment approves it. Follow the shared [Releasing skill](https://github.com/base-rs/base-project/blob/main/context/releasing.md) for the standard process.
 
 ## Releases
 
 <!-- bake-readme:releases:start -->
-
 See [releases.md](releases.md) for the full release history.
+
+### v0.2.7
+
+- Depend on `base-markdown` under the `base-rs` organization, replacing `core-markdown`.
 
 ### v0.2.6
 
@@ -43,22 +46,17 @@ See [releases.md](releases.md) for the full release history.
 ### v0.2.5
 
 - Use `core-markdown` in place of `socketry-markdown`.
-
-### v0.2.4
-
-- Document generated task links and related project references.
-
 <!-- bake-readme:releases:end -->
 
 ## See Also
 
-- [`bake`](https://github.com/core-rs/bake).
+- [`bake`](https://github.com/base-rs/bake).
 
-- [`bake-releases`](https://github.com/core-rs/bake-releases).
+- [`bake-releases`](https://github.com/base-rs/bake-releases).
 
 ## Contributing
 
-Please open an issue or pull request on [GitHub](https://github.com/core-rs/bake-readme). The [readme guidance](context/readme-structure.md) describes the intended scope and structure of project `readme.md` files.
+Please open an issue or pull request on [GitHub](https://github.com/base-rs/bake-readme). The [readme guidance](context/readme-structure.md) describes the intended scope and structure of project `readme.md` files.
 
 ### Agent Context
 

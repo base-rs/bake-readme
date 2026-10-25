@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use core_markdown::{
+use base_markdown::{
     Document, MarkdownOptions, ParseOptions,
     stream::{EventKind, Tag, Text},
     to_markdown_with_options,
