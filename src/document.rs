@@ -2,9 +2,9 @@
 // Copyright, 2026, by Samuel Williams.
 
 use core_markdown::{
-    MarkdownOptions, ParseOptions,
-    mdast::{Html, InlineCode, Link, List, ListItem, Node, Paragraph, Text},
-    to_mdast,
+    Document, MarkdownOptions, ParseOptions,
+    stream::{EventKind, Tag, Text},
+    to_markdown_with_options,
 };
 use std::ops::Range;
 
@@ -42,51 +42,28 @@ pub struct Release {
     pub notes: String,
 }
 
-fn parse_markdown(document: &str) -> Node {
-    to_mdast(document, &ParseOptions::default())
-        .expect("CommonMark input should always parse into an AST")
-}
-
-fn heading_text(node: &Node) -> String {
-    node.text_content()
-}
-
-fn after_line_ending(document: &str, offset: usize) -> usize {
-    let rest = &document[offset..];
-
-    if rest.starts_with("\r\n") {
-        offset + 2
-    } else if rest.starts_with('\r') || rest.starts_with('\n') {
-        offset + 1
-    } else {
-        offset
-    }
+fn parse_markdown(source: &str) -> Document<&str> {
+    Document::parse(source, &ParseOptions::default())
+        .expect("the built-in Markdown parser produces a valid document")
 }
 
 fn headings(document: &str) -> Vec<Heading> {
-    let root = parse_markdown(document);
-    let children = root
-        .children()
-        .expect("a Markdown document AST should be a root node");
-    let mut headings = Vec::new();
-
-    for node in children {
-        let Node::Heading(heading) = node else {
-            continue;
-        };
-        let position = heading
-            .position
-            .as_ref()
-            .expect("parsed Markdown headings should include source positions");
-        headings.push(Heading {
-            title: heading_text(node),
-            level: heading.depth,
-            start: position.start.offset,
-            body_start: after_line_ending(document, position.end.offset),
-        });
-    }
-
-    headings
+    let parsed = parse_markdown(document);
+    parsed
+        .children(parsed.root())
+        .filter_map(|id| {
+            let node = parsed.node(id).unwrap();
+            let EventKind::Start(Tag::Heading(level)) = node.kind else {
+                return None;
+            };
+            Some(Heading {
+                title: parsed.text_content(id),
+                level,
+                start: node.span.start,
+                body_start: node.span.end,
+            })
+        })
+        .collect()
 }
 
 fn trailing_blank_lines_start(document: &str, position: usize) -> Range<usize> {
@@ -112,26 +89,53 @@ fn newline(document: &str) -> &'static str {
 
 fn rendered_package_entry(package: &PackageMetadata) -> String {
     let name = package.name.trim();
-    let name_node = match package
+    let mut document = parse_markdown("");
+    let list = document
+        .append_child(
+            document.root(),
+            EventKind::Start(Tag::List {
+                start: None,
+                tight: true,
+            }),
+        )
+        .unwrap();
+    let item = document
+        .append_child(list, EventKind::Start(Tag::Item { block_end: false }))
+        .unwrap();
+    let paragraph = document
+        .append_child(item, EventKind::Start(Tag::Paragraph { tight: true }))
+        .unwrap();
+    match package
         .repository
         .as_deref()
         .filter(|value| !value.trim().is_empty())
     {
-        Some(repository) => Node::Link(Link {
-            children: vec![Node::Text(Text {
-                value: name.to_owned(),
-                position: None,
-            })],
-            position: None,
-            url: repository.to_owned(),
-            title: None,
-        }),
-        None => Node::InlineCode(InlineCode {
-            value: name.to_owned(),
-            position: None,
-            lang: None,
-        }),
-    };
+        Some(repository) => {
+            let link = document
+                .append_child(
+                    paragraph,
+                    EventKind::Start(Tag::Link {
+                        destination: Text::from(repository.to_owned()),
+                        title: None,
+                    }),
+                )
+                .unwrap();
+            document
+                .append_child(link, EventKind::Text(Text::from(name.to_owned())))
+                .unwrap();
+        }
+        None => {
+            document
+                .append_child(
+                    paragraph,
+                    EventKind::Code {
+                        value: Text::from(name.to_owned()),
+                        language: None,
+                    },
+                )
+                .unwrap();
+        }
+    }
     let description = package
         .description
         .as_deref()
@@ -140,42 +144,31 @@ fn rendered_package_entry(package: &PackageMetadata) -> String {
         .filter(|words| !words.is_empty())
         .map(|words| words.join(" "));
 
-    let mut children = vec![name_node];
     if let Some(description) = description {
-        children.push(Node::Text(Text {
-            value: format!(" — {description}"),
-            position: None,
-        }));
+        document
+            .append_child(
+                paragraph,
+                EventKind::Text(Text::from(format!(" — {description}"))),
+            )
+            .unwrap();
     }
-    children.push(Node::Html(Html {
-        value: PACKAGE_MARKER.to_owned(),
-        position: None,
-    }));
-
+    document
+        .append_child(
+            paragraph,
+            EventKind::Html {
+                value: Text::Literal(PACKAGE_MARKER),
+                block: false,
+            },
+        )
+        .unwrap();
     let options = MarkdownOptions {
         bullet: '-',
         ..MarkdownOptions::default()
     };
-
-    Node::List(List {
-        children: vec![Node::ListItem(ListItem {
-            children: vec![Node::Paragraph(Paragraph {
-                children,
-                position: None,
-            })],
-            position: None,
-            spread: false,
-            checked: None,
-        })],
-        position: None,
-        ordered: false,
-        start: None,
-        spread: false,
-    })
-    .to_markdown_with_options(&options)
-    .expect("generated package entries are valid Markdown")
-    .trim_end()
-    .to_owned()
+    to_markdown_with_options(&document, &options)
+        .expect("generated package entries are valid Markdown")
+        .trim_end()
+        .to_owned()
 }
 
 fn section_end(document: &str, headings: &[Heading], index: usize) -> usize {
@@ -242,28 +235,16 @@ fn rendered_recent_releases(releases: &[Release], line_ending: &str) -> String {
 }
 
 fn marker_line(document: &str, range: Range<usize>, marker: &str) -> Option<(usize, usize)> {
-    let root = parse_markdown(document);
-    let mut found = None;
-    root.walk(|node| {
-        if found.is_some() {
-            return;
-        }
-        let Node::Html(html) = node else {
-            return;
+    let parsed = parse_markdown(document);
+    parsed.descendants(parsed.root()).find_map(|id| {
+        let node = parsed.node(id).unwrap();
+        let EventKind::Html { value, .. } = &node.kind else {
+            return None;
         };
-        if html.value.trim() != marker {
-            return;
-        }
-        let position = node
-            .position()
-            .expect("parsed Markdown nodes should include source positions");
-        let offset = position.start.offset;
-        if offset < range.start || offset >= range.end {
-            return;
-        }
-        found = Some(source_line_range(document, offset));
-    });
-    found
+        let offset = node.span.start;
+        (value.resolve(document).unwrap().trim() == marker && range.contains(&offset))
+            .then(|| source_line_range(document, offset))
+    })
 }
 
 fn source_line_range(document: &str, offset: usize) -> (usize, usize) {
@@ -277,38 +258,13 @@ fn source_line_range(document: &str, offset: usize) -> (usize, usize) {
 }
 
 fn contains_link_to(document: &str, range: Range<usize>, destination: &str) -> bool {
-    let root = parse_markdown(document);
-    let mut definitions = Vec::new();
-    root.walk(|node| {
-        if let Node::Definition(definition) = node
-            && definition.url == destination
-        {
-            definitions.push(definition.identifier.clone());
-        }
-    });
-    let mut found = false;
-    root.walk(|node| {
-        if found {
-            return;
-        }
-        let matches = match node {
-            Node::Link(link) => link.url == destination,
-            Node::LinkReference(reference) => definitions.contains(&reference.identifier),
-            _ => false,
-        };
-        if matches
-            && range.contains(
-                &node
-                    .position()
-                    .expect("parsed Markdown nodes should include source positions")
-                    .start
-                    .offset,
-            )
-        {
-            found = true;
-        }
-    });
-    found
+    let parsed = parse_markdown(document);
+    // Reference links already carry their resolved destination, including first-definition precedence.
+    parsed.descendants(parsed.root()).any(|id| {
+        let node = parsed.node(id).unwrap();
+        matches!(&node.kind, EventKind::Start(Tag::Link { destination: target, .. })
+            if target.resolve(document).unwrap() == destination && range.contains(&node.span.start))
+    })
 }
 
 fn replace_generated_releases(

@@ -82,7 +82,10 @@ fn includes_recent_releases_in_generated_section_before_contributing() {
         notes: "- Improve startup.".to_owned(),
     }];
     let updated = update_document_with_releases("# Project\n\n## Contributing\n", None, &releases);
-    assert!(updated.contains("## Releases\n\n<!-- bake-readme:releases:start -->"));
+    assert!(
+        updated.contains("## Releases\n\n<!-- bake-readme:releases:start -->"),
+        "{updated:?}"
+    );
     assert!(updated.contains("### v1.2.0\n\n- Improve startup."));
     assert!(updated.contains("<!-- bake-readme:releases:end -->\n\n## Contributing"));
 }
@@ -631,4 +634,33 @@ fn inserts_releases_section_at_the_start_and_before_a_tightly_spaced_heading() {
         ensure_releases_section("# Example\n## Contributing\n"),
         "# Example\n\n## Releases\n\nSee [releases.md](releases.md) for the release history.\n\n## Contributing\n"
     );
+}
+
+#[test]
+fn reference_links_use_the_first_matching_definition() {
+    let package = PackageMetadata {
+        name: "example".to_owned(),
+        description: None,
+        repository: Some("https://example.com/repository".to_owned()),
+    };
+    for (first, second, generates_entry) in [
+        (
+            "https://example.com/other",
+            "https://example.com/repository",
+            true,
+        ),
+        (
+            "https://example.com/repository",
+            "https://example.com/other",
+            false,
+        ),
+    ] {
+        let source =
+            format!("# Project\n\n[Source][source]\n\n[source]: {first}\n[source]: {second}\n");
+        let updated = update_document(&source, Some(&package));
+        assert_eq!(
+            updated.contains("<!-- bake-readme:package -->"),
+            generates_entry
+        );
+    }
 }
