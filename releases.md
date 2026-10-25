@@ -1,5 +1,9 @@
 # Releases
 
+## v0.2.7
+
+- Depend on `base-markdown` under the `base-rs` organization, replacing `core-markdown`.
+
 ## v0.2.6
 
 - Migrate to the source-backed `core-markdown` document AST, preserving supported Markdown behavior and source bytes. Resolve reference links using the first matching definition.
