@@ -24,3 +24,18 @@ fn finds_source_line_ranges_at_document_edges() {
     assert_eq!(source_line_range("first\nlast", 6), (6, 10));
     assert_eq!(source_line_range("first\nlast\n", 2), (0, 6));
 }
+
+#[test]
+fn heading_bodies_preserve_blank_lines_for_all_source_endings() {
+    for ending in ["\n", "\r\n", "\r"] {
+        for heading in ["## Release\n", "Release\n-------\n"] {
+            let source = format!("{heading}\nNotes.\n").replace('\n', ending);
+            let headings = super::headings(&source);
+            assert_eq!(headings[0].title, "Release");
+            assert_eq!(
+                &source[headings[0].body_start..],
+                format!("{ending}Notes.{ending}")
+            );
+        }
+    }
+}
