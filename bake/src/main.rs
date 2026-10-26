@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use core_project as _;
+use base_project as _;
 
 #[cfg(not(test))]
 fn main() -> bake::Result<()> {
