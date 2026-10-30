@@ -154,6 +154,9 @@ fn rendered_package_entry(package: &PackageMetadata) -> String {
             .unwrap();
     }
     document
+        .append_child(paragraph, EventKind::Text(Text::Literal(" ")))
+        .unwrap();
+    document
         .append_child(
             paragraph,
             EventKind::Html {

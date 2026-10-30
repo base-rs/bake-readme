@@ -1,11 +1,12 @@
 # Releases
 
-## Unreleased
+## v0.2.8
 
 - Include the `Release: vVERSION` trailer, GitHub Release creation, and the Base Project releasing skill in the standard Releasing paragraph.
 - Discover guidance with `agent:context:list` and `agent:context:show` in the standard Agent Context subsection.
 - Separate the generated release markers from the summary with blank lines, matching `markdown:normalize`.
 - Always write LF line endings: CRLF and lone CR line endings in the readme and in release entries read from `releases.md` are converted to LF. A readme checked out with CRLF line endings, for example through `core.autocrlf`, is rewritten on each run.
+- Write the space before the package marker explicitly, so package entries keep it with `base-markdown` 0.1.1, which no longer adds a space before inline HTML.
 
 ## v0.2.7
 
