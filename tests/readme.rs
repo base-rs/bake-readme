@@ -573,6 +573,52 @@ fn ignores_release_markers_outside_the_generated_section() {
 }
 
 #[test]
+fn separates_release_markers_with_blank_lines_and_is_idempotent() {
+    let releases = [Release {
+        name: "v1.0.0".to_owned(),
+        notes: "- Initial release.".to_owned(),
+    }];
+    let document = update_document_with_releases("# Project\n", None, &releases);
+
+    assert_eq!(
+        document,
+        "# Project\n\n## Releases\n\n<!-- bake-readme:releases:start -->\n\nSee [releases.md](releases.md) for the full release history.\n\n### v1.0.0\n\n- Initial release.\n\n<!-- bake-readme:releases:end -->\n"
+    );
+    assert_eq!(
+        update_document_with_releases(&document, None, &releases),
+        document
+    );
+
+    let padded = document
+        .replace("start -->\n\n", "start -->\n\n \t\n\n")
+        .replace(
+            "\n\n<!-- bake-readme:releases:end",
+            "\n\n\n  \n<!-- bake-readme:releases:end",
+        );
+    assert_eq!(
+        update_document_with_releases(&padded, None, &releases),
+        document
+    );
+}
+
+#[test]
+fn upgrades_legacy_crlf_release_link_with_blank_lines() {
+    let document = "## Releases\r\n\r\nSee [releases.md](releases.md) for the release history.\r\n\r\n## Contributing\r\n";
+    let releases = [Release {
+        name: "v1.0.0".to_owned(),
+        notes: "- Initial release.".to_owned(),
+    }];
+
+    let updated = update_document_with_releases(document, None, &releases);
+
+    assert!(updated.contains("<!-- bake-readme:releases:start -->\r\n\r\nSee [releases.md]"));
+    assert!(updated.contains(
+        "- Initial release.\r\n\r\n<!-- bake-readme:releases:end -->\r\n\r\n## Contributing"
+    ));
+    assert!(!updated.replace("\r\n", "").contains('\n'));
+}
+
+#[test]
 fn renders_release_without_notes_and_preserves_crlf() {
     let document = "## Releases\r\n<!-- bake-readme:releases:start -->\r\nold\r\n<!-- bake-readme:releases:end -->\r\n";
     let releases = [Release {
@@ -582,7 +628,8 @@ fn renders_release_without_notes_and_preserves_crlf() {
 
     let updated = update_document_with_releases(document, None, &releases);
 
-    assert!(updated.contains("### v1.0.0\r\n<!-- bake-readme:releases:end -->"));
+    assert!(updated.contains("<!-- bake-readme:releases:start -->\r\n\r\nSee [releases.md]"));
+    assert!(updated.contains("### v1.0.0\r\n\r\n<!-- bake-readme:releases:end -->"));
     assert!(!updated.replace("\r\n", "").contains('\n'));
 }
 

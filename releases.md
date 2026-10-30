@@ -4,6 +4,7 @@
 
 - Include the `Release: vVERSION` trailer, GitHub Release creation, and the Base Project releasing skill in the standard Releasing paragraph.
 - Discover guidance with `agent:context:list` and `agent:context:show` in the standard Agent Context subsection.
+- Separate the generated release markers from the summary with blank lines, matching `markdown:normalize`.
 
 ## v0.2.7
 
