@@ -47,12 +47,7 @@ Show how to install or add the project, then give a small common example.
 
 ## Releasing
 
-Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`,
-or `bump --version X.Y.Z`), then run `cargo bake cargo:release` and open a
-pull request. After review and merge, GitHub Actions publishes the release
-when the configured `crates-io` environment approves it. Follow the shared
-[Releasing skill](https://github.com/socketry/socketry-project-rust/blob/main/context/releasing.md)
-for the standard process.
+Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or `bump --version X.Y.Z`), commit it with a `Release: vVERSION` trailer, then run `cargo bake cargo:release` and open a pull request. After review and merge, GitHub Actions publishes the release when the configured `crates-io` environment approves it, then creates or updates the matching GitHub Release from `releases.md`. Follow the shared [Releasing skill](https://github.com/base-rs/base-project/blob/main/context/releasing.md) for the standard process.
 
 ## Releases
 
@@ -69,10 +64,10 @@ Please open an issue or pull request on [GitHub](https://github.com/OWNER/REPOSI
 <!-- Include this subsection only when the crate publishes files in context/. -->
 ### Agent Context
 
-Run `cargo bake agent:context:install` to install shared context and skills. Read `.agents/context/index.md` to find relevant guides, follow `agents.md` if present, and apply skills under `.agents/skills/`. The installer preserves repository-owned `agents.md`; it does not create or regenerate that file.
+Run `cargo bake agent:context:install` to install shared context and skills. Use `cargo bake agent:context:list` and `cargo bake agent:context:show` to discover relevant guides, follow `agents.md` if present, and apply skills under `.agents/skills/`. The installer preserves repository-owned `agents.md`; it does not create or regenerate that file.
 ```
 
-Replace `OWNER/REPOSITORY` with the source repository. Use the Releasing paragraph verbatim for projects using Bake Cargo. The Agent Context subsection is fixed boilerplate; omit the entire subsection when the crate does not publish context. The Contributing paragraph is also standard boilerplate; retain it for public projects and change only the repository link.
+Replace `OWNER/REPOSITORY` with the source repository. Use the Releasing paragraph verbatim for projects using Bake Cargo; when the project configures a release tag prefix, replace the `v` in `vVERSION` with that prefix (for example, `base-vVERSION`). The Agent Context subsection is fixed boilerplate; omit the entire subsection when the crate does not publish context. The Contributing paragraph is also standard boilerplate; retain it for public projects and change only the repository link.
 
 Treat this as a starting point for project-specific summary, motivation, and usage content. Preserve authored wording when running `cargo bake readme:update`; the task only manages marked release summaries and the generated Cargo package entry.
 
