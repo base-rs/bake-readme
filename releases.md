@@ -1,5 +1,10 @@
 # Releases
 
+## Unreleased
+
+- Include the `Release: vVERSION` trailer, GitHub Release creation, and the Base Project releasing skill in the standard Releasing paragraph.
+- Discover guidance with `agent:context:list` and `agent:context:show` in the standard Agent Context subsection.
+
 ## v0.2.7
 
 - Depend on `base-markdown` under the `base-rs` organization, replacing `core-markdown`.
