@@ -27,8 +27,17 @@ fn appends_when_no_preferred_section_exists() {
 
 #[test]
 fn existing_section_is_preserved_exactly() {
-    let document = "# Project\r\n\r\n## Releases\r\nCustom release links.\r\n";
+    let document = "# Project\n\n## Releases\nCustom release links.\n";
     assert_eq!(ensure_releases_section(document), document);
+}
+
+#[test]
+fn existing_section_is_written_with_unix_line_endings() {
+    let document = "# Project\r\n\r\n## Releases\rCustom release links.\r\n";
+    assert_eq!(
+        ensure_releases_section(document),
+        "# Project\n\n## Releases\nCustom release links.\n"
+    );
 }
 
 #[test]
@@ -39,11 +48,11 @@ fn ignores_headings_in_fenced_code_and_block_quotes() {
 }
 
 #[test]
-fn preserves_crlf_line_endings_when_inserting() {
+fn converts_crlf_line_endings_when_inserting() {
     let document = "# Project\r\n\r\n## Contributing\r\n";
     assert_eq!(
         ensure_releases_section(document),
-        "# Project\r\n\r\n## Releases\r\n\r\nSee [releases.md](releases.md) for the release history.\r\n\r\n## Contributing\r\n"
+        "# Project\n\n## Releases\n\nSee [releases.md](releases.md) for the release history.\n\n## Contributing\n"
     );
 }
 
@@ -487,8 +496,8 @@ fn appends_see_also_with_existing_blank_lines_and_crlf() {
     assert!(lf_updated.contains("# Example\n\n## Releases\n"));
 
     let crlf_updated = update_document("# Example\r\nDescription", Some(&metadata));
-    assert!(crlf_updated.contains("\r\n\r\n## Releases\r\n"));
-    assert!(!crlf_updated.replace("\r\n", "").contains('\n'));
+    assert!(crlf_updated.contains("\n\n## Releases\n"));
+    assert!(!crlf_updated.contains('\r'));
 }
 
 #[test]
@@ -509,7 +518,7 @@ fn refreshes_generated_entry_without_a_trailing_newline() {
 }
 
 #[test]
-fn refreshes_generated_entry_with_crlf_line_endings() {
+fn refreshes_generated_entry_and_converts_crlf_line_endings() {
     let metadata = PackageMetadata {
         name: "new-name".to_owned(),
         description: None,
@@ -520,8 +529,8 @@ fn refreshes_generated_entry_with_crlf_line_endings() {
 
     let updated = update_document(original, Some(&metadata));
 
-    assert!(updated.contains("## See Also\r\n\r\n- [new-name](https://example.com/source)"));
-    assert!(!updated.replace("\r\n", "").contains('\n'));
+    assert!(updated.contains("## See Also\n\n- [new-name](https://example.com/source)"));
+    assert!(!updated.contains('\r'));
 }
 
 #[test]
@@ -573,7 +582,69 @@ fn ignores_release_markers_outside_the_generated_section() {
 }
 
 #[test]
-fn renders_release_without_notes_and_preserves_crlf() {
+fn separates_release_markers_with_blank_lines_and_is_idempotent() {
+    let releases = [Release {
+        name: "v1.0.0".to_owned(),
+        notes: "- Initial release.".to_owned(),
+    }];
+    let document = update_document_with_releases("# Project\n", None, &releases);
+
+    assert_eq!(
+        document,
+        "# Project\n\n## Releases\n\n<!-- bake-readme:releases:start -->\n\nSee [releases.md](releases.md) for the full release history.\n\n### v1.0.0\n\n- Initial release.\n\n<!-- bake-readme:releases:end -->\n"
+    );
+    assert_eq!(
+        update_document_with_releases(&document, None, &releases),
+        document
+    );
+
+    let padded = document
+        .replace("start -->\n\n", "start -->\n\n \t\n\n")
+        .replace(
+            "\n\n<!-- bake-readme:releases:end",
+            "\n\n\n  \n<!-- bake-readme:releases:end",
+        );
+    assert_eq!(
+        update_document_with_releases(&padded, None, &releases),
+        document
+    );
+}
+
+#[test]
+fn upgrades_legacy_crlf_release_link_with_unix_line_endings() {
+    let document = "## Releases\r\n\r\nSee [releases.md](releases.md) for the release history.\r\n\r\n## Contributing\r\n";
+    let releases = [Release {
+        name: "v1.0.0".to_owned(),
+        notes: "- Initial release.".to_owned(),
+    }];
+
+    let updated = update_document_with_releases(document, None, &releases);
+
+    assert!(updated.contains("<!-- bake-readme:releases:start -->\n\nSee [releases.md]"));
+    assert!(
+        updated
+            .contains("- Initial release.\n\n<!-- bake-readme:releases:end -->\n\n## Contributing")
+    );
+    assert!(!updated.contains('\r'));
+}
+
+#[test]
+fn converts_crlf_release_entries_from_release_notes() {
+    let releases = recent_releases(
+        "# Releases\r\n\r\nLine one\r\nline two\r\n--------\r\n\r\n- One.\r- Two.\r\n",
+    );
+
+    assert_eq!(releases[0].name, "Line one\nline two");
+    assert_eq!(releases[0].notes, "- One.\n- Two.");
+    let custom = [Release {
+        name: "v1.0.0\r".to_owned(),
+        notes: String::new(),
+    }];
+    assert!(!update_document_with_releases("# Project\n", None, &custom).contains('\r'));
+}
+
+#[test]
+fn renders_release_without_notes_and_converts_crlf() {
     let document = "## Releases\r\n<!-- bake-readme:releases:start -->\r\nold\r\n<!-- bake-readme:releases:end -->\r\n";
     let releases = [Release {
         name: "v1.0.0".to_owned(),
@@ -582,8 +653,9 @@ fn renders_release_without_notes_and_preserves_crlf() {
 
     let updated = update_document_with_releases(document, None, &releases);
 
-    assert!(updated.contains("### v1.0.0\r\n<!-- bake-readme:releases:end -->"));
-    assert!(!updated.replace("\r\n", "").contains('\n'));
+    assert!(updated.contains("<!-- bake-readme:releases:start -->\n\nSee [releases.md]"));
+    assert!(updated.contains("### v1.0.0\n\n<!-- bake-readme:releases:end -->"));
+    assert!(!updated.contains('\r'));
 }
 
 #[test]
@@ -620,7 +692,7 @@ fn appends_releases_section_for_empty_and_already_spaced_documents() {
     );
     assert_eq!(
         ensure_releases_section("# Example\r\nDescription"),
-        "# Example\r\nDescription\r\n\r\n## Releases\r\n\r\nSee [releases.md](releases.md) for the release history.\r\n"
+        "# Example\nDescription\n\n## Releases\n\nSee [releases.md](releases.md) for the release history.\n"
     );
 }
 

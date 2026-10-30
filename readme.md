@@ -33,6 +33,7 @@ Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or
 ## Releases
 
 <!-- bake-readme:releases:start -->
+
 See [releases.md](releases.md) for the full release history.
 
 ### v0.2.7
@@ -46,6 +47,7 @@ See [releases.md](releases.md) for the full release history.
 ### v0.2.5
 
 - Use `core-markdown` in place of `socketry-markdown`.
+
 <!-- bake-readme:releases:end -->
 
 ## See Also
