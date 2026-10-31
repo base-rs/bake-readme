@@ -1,5 +1,11 @@
 # Releases
 
+## Unreleased
+
+- Write the whole readme in the form `markdown:normalize` writes it, by passing the updated document through `base_markdown::normalize_markdown`, the normalizer `bake-markdown` uses. Authored content outside the generated regions is normalized too: for example, soft-wrapped lines are joined and `*` list markers become `-`. The library functions that return updated documents normalize their results the same way. Requires `base-markdown` 0.1.3.
+- Find headings and markers with the syntax the normalizer parses, including front matter and math, so a heading-like line inside a math block or front matter no longer places generated sections there.
+- Insert the generated package entry into an authored See Also list without a blank line, so a tight list stays tight.
+
 ## v0.2.8
 
 - Include the `Release: vVERSION` trailer, GitHub Release creation, and the Base Project releasing skill in the standard Releasing paragraph.
