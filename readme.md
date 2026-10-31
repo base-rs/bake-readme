@@ -22,7 +22,7 @@ Then run the task from the project root:
 cargo bake readme:update
 ```
 
-If `readme.md` has no authored `Releases` section, the task adds one with the three latest versioned entries from `releases.md`. It skips `Unreleased` and links to the full release history. The task also adds or refreshes a package entry in `See Also` based on the root `Cargo.toml` name, description, and repository URL. Existing authored sections and entries are preserved.
+If `readme.md` has no authored `Releases` section, the task adds one with the three latest versioned entries from `releases.md`. It skips `Unreleased` and links to the full release history. The task also adds or refreshes a package entry in `See Also` based on the root `Cargo.toml` name, description, and repository URL. Existing authored sections and entries are preserved. The task writes the whole readme as `cargo bake markdown:normalize` would, so the two tasks never rewrite each other's output.
 
 A custom path is supported with `--path PATH`.
 

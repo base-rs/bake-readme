@@ -26,9 +26,12 @@ fn appends_when_no_preferred_section_exists() {
 }
 
 #[test]
-fn existing_section_is_preserved_exactly() {
-    let document = "# Project\n\n## Releases\nCustom release links.\n";
-    assert_eq!(ensure_releases_section(document), document);
+fn existing_section_content_is_preserved_and_normalized() {
+    let document = "# Project\n\n## Releases\nCustom release\nlinks.\n";
+    assert_eq!(
+        ensure_releases_section(document),
+        "# Project\n\n## Releases\n\nCustom release links.\n"
+    );
 }
 
 #[test]
@@ -36,7 +39,7 @@ fn existing_section_is_written_with_unix_line_endings() {
     let document = "# Project\r\n\r\n## Releases\rCustom release links.\r\n";
     assert_eq!(
         ensure_releases_section(document),
-        "# Project\n\n## Releases\nCustom release links.\n"
+        "# Project\n\n## Releases\n\nCustom release links.\n"
     );
 }
 
@@ -556,8 +559,8 @@ fn leaves_releases_section_unchanged_when_markers_are_reversed_or_incomplete() {
     }];
 
     for document in [
-        "## Releases\n<!-- bake-readme:releases:end -->\nOld text\n<!-- bake-readme:releases:start -->\n",
-        "## Releases\n<!-- bake-readme:releases:start -->\nOld text\n",
+        "## Releases\n\n<!-- bake-readme:releases:end -->\n\nOld text\n\n<!-- bake-readme:releases:start -->\n",
+        "## Releases\n\n<!-- bake-readme:releases:start -->\n\nOld text\n",
     ] {
         assert_eq!(
             update_document_with_releases(document, None, &releases),
@@ -692,7 +695,7 @@ fn appends_releases_section_for_empty_and_already_spaced_documents() {
     );
     assert_eq!(
         ensure_releases_section("# Example\r\nDescription"),
-        "# Example\nDescription\n\n## Releases\n\nSee [releases.md](releases.md) for the release history.\n"
+        "# Example\n\nDescription\n\n## Releases\n\nSee [releases.md](releases.md) for the release history.\n"
     );
 }
 

@@ -69,6 +69,6 @@ Run `cargo bake agent:context:install` to install shared context and skills. Use
 
 Replace `OWNER/REPOSITORY` with the source repository. Use the Releasing paragraph verbatim for projects using Bake Cargo; when the project configures a release tag prefix, replace the `v` in `vVERSION` with that prefix (for example, `base-vVERSION`). The Agent Context subsection is fixed boilerplate; omit the entire subsection when the crate does not publish context. The Contributing paragraph is also standard boilerplate; retain it for public projects and change only the repository link.
 
-Treat this as a starting point for project-specific summary, motivation, and usage content. Preserve authored wording when running `cargo bake readme:update`; the task only manages marked release summaries and the generated Cargo package entry.
+Treat this as a starting point for project-specific summary, motivation, and usage content. Preserve authored wording when running `cargo bake readme:update`; the task only manages marked release summaries and the generated Cargo package entry. It also normalizes the whole readme with the same rules as `markdown:normalize`, which changes formatting, such as joining soft-wrapped lines, but not wording.
 
 The task uses HTML comments to identify the sections it may refresh. Do not edit the contents between its release markers by hand; edit `releases.md` instead. Existing unmarked release sections and manually maintained See Also entries are left intact.

@@ -7,7 +7,8 @@
 //! project `readme.md` does not already contain an authored Releases section. When
 //! the project root has a Cargo package manifest, it also adds or refreshes a
 //! generated package entry in the `readme.md` See Also section when the source
-//! repository link is not already present elsewhere in the readme.
+//! repository link is not already present elsewhere in the readme. The whole
+//! readme is written as `markdown:normalize` from `bake-markdown` writes it.
 mod document;
 mod metadata;
 
