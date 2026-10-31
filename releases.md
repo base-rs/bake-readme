@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v0.3.0
 
 - Write the whole readme in the form `markdown:normalize` writes it, by passing the updated document through `base_markdown::normalize_markdown`, the normalizer `bake-markdown` uses. Authored content outside the generated regions is normalized too: for example, soft-wrapped lines are joined and `*` list markers become `-`. The library functions that return updated documents normalize their results the same way. Requires `base-markdown` 0.1.3.
 - Find headings and markers with the syntax the normalizer parses, including front matter and math, so a heading-like line inside a math block or front matter no longer places generated sections there.
