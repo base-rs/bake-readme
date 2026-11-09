@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+- Declare Rust 1.88 as the minimum supported version in `rust-version`, as required by the let-chains in `bake` 0.20.
+
 ## v0.3.0
 
 - Write the whole readme in the form `markdown:normalize` writes it, by passing the updated document through `base_markdown::normalize_markdown`, the normalizer `bake-markdown` uses. Authored content outside the generated regions is normalized too: for example, soft-wrapped lines are joined and `*` list markers become `-`. The library functions that return updated documents normalize their results the same way. Requires `base-markdown` 0.1.3.
