@@ -36,6 +36,10 @@ Prepare a release with `cargo bake cargo:release:patch` (or `minor`, `major`, or
 
 See [releases.md](releases.md) for the full release history.
 
+### v0.3.2
+
+- Require `bake` 0.20 or later, instead of 0.18 or later, so that Cargo resolves this crate to the same `bake` as a task package that requires `bake` 0.20.2. In a workspace whose `rust-version` is below the 1.88 that `bake` 0.20.2 declares, Cargo resolved the old requirement to `bake` 0.19.2, which declares none, and the task package failed to compile against two `bake` versions.
+
 ### v0.3.1
 
 - Declare Rust 1.88 as the minimum supported version in `rust-version`, as required by the let-chains in `bake` 0.20.
@@ -45,14 +49,6 @@ See [releases.md](releases.md) for the full release history.
 - Write the whole readme in the form `markdown:normalize` writes it, by passing the updated document through `base_markdown::normalize_markdown`, the normalizer `bake-markdown` uses. Authored content outside the generated regions is normalized too: for example, soft-wrapped lines are joined and `*` list markers become `-`. The library functions that return updated documents normalize their results the same way. Requires `base-markdown` 0.1.3.
 - Find headings and markers with the syntax the normalizer parses, including front matter and math, so a heading-like line inside a math block or front matter no longer places generated sections there.
 - Insert the generated package entry into an authored See Also list without a blank line, so a tight list stays tight.
-
-### v0.2.8
-
-- Include the `Release: vVERSION` trailer, GitHub Release creation, and the Base Project releasing skill in the standard Releasing paragraph.
-- Discover guidance with `agent:context:list` and `agent:context:show` in the standard Agent Context subsection.
-- Separate the generated release markers from the summary with blank lines, matching `markdown:normalize`.
-- Always write LF line endings: CRLF and lone CR line endings in the readme and in release entries read from `releases.md` are converted to LF. A readme checked out with CRLF line endings, for example through `core.autocrlf`, is rewritten on each run.
-- Write the space before the package marker explicitly, so package entries keep it with `base-markdown` 0.1.1, which no longer adds a space before inline HTML.
 
 <!-- bake-readme:releases:end -->
 
